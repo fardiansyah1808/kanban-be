@@ -45,12 +45,17 @@ export class Task {
   })
   updatedAt: number; // unix timestamp in milliseconds
 
-  constructor(id: number, title: string, description: string) {
+  constructor(
+    id: number,
+    title: string,
+    description: string,
+    ownerId: number = 1,
+  ) {
     this.id = id;
     this.title = title;
     this.description = description;
     this.status = 'TODO';
-    this.ownerId = 1;
+    this.ownerId = ownerId;
     this.isDeleted = false;
     this.createdAt = Date.now();
     this.updatedAt = Date.now();

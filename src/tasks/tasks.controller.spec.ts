@@ -3,6 +3,8 @@ import { TasksController } from './tasks.controller';
 import { TasksService } from './tasks.service';
 import { Task } from './entities/task.entity';
 import { NotFoundException } from '@nestjs/common';
+import { Repository } from 'typeorm';
+import { getRepositoryToken } from '@nestjs/typeorm';
 
 describe('TasksController', () => {
   let controller: TasksController;
@@ -11,7 +13,10 @@ describe('TasksController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [TasksController],
-      providers: [TasksService],
+      providers: [
+        TasksService,
+        { provide: getRepositoryToken(Task), useClass: Repository<Task> },
+      ],
     }).compile();
 
     controller = module.get<TasksController>(TasksController);
@@ -27,7 +32,9 @@ describe('TasksController', () => {
   });
 
   it('should return empty array of tasks', async () => {
-    jest.spyOn(service, 'findAll').mockImplementation(() => [] as Task[]);
+    jest
+      .spyOn(service, 'findAll')
+      .mockImplementation(() => Promise.resolve([] as Task[]));
     const tasks = await controller.findAll();
     expect(tasks).toEqual([]);
   });
@@ -38,7 +45,9 @@ describe('TasksController', () => {
       new Task(2, 'Task 2', 'Description 2'),
     ];
 
-    jest.spyOn(service, 'findAll').mockImplementation(() => tasks);
+    jest
+      .spyOn(service, 'findAll')
+      .mockImplementation(() => Promise.resolve(tasks));
     const result = await controller.findAll();
     expect(result).toBe(tasks);
   });
@@ -47,9 +56,9 @@ describe('TasksController', () => {
     const task: Task = new Task(1, 'Task 1', 'Description 1');
     jest
       .spyOn(service, 'findOne')
-      .mockImplementation((id: number): Task | undefined => {
+      .mockImplementation((id: number): Promise<Task> => {
         expect(id).toBe(task.id);
-        return task;
+        return Promise.resolve(task);
       });
     const result: Task | undefined = await controller.findOne(1);
     expect(result).toBe(task);
@@ -58,9 +67,9 @@ describe('TasksController', () => {
   it('should return a task by id not found', async () => {
     jest
       .spyOn(service, 'findOne')
-      .mockImplementation((id: number): Task | undefined => {
+      .mockImplementation((id: number): Promise<Task> => {
         expect(id).toBe(1);
-        return undefined;
+        return Promise.resolve(null);
       });
     expect(() => controller.findOne(1)).toThrow(NotFoundException);
   });

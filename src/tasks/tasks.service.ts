@@ -2,56 +2,37 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task } from './entities/task.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class TasksService {
-  private tasks: Task[] = [
-    {
-      id: 1,
-      title: 'Task 1',
-      description: 'Description 1',
-      status: 'TODO',
-      ownerId: 1,
-      isDeleted: false,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    },
-    {
-      id: 2,
-      title: 'Task 2',
-      description: 'Description 2',
-      status: 'ON_PROGRESS',
-      ownerId: 2,
-      isDeleted: false,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    },
-  ];
+  constructor(
+    @InjectRepository(Task) private taskRepository: Repository<Task>,
+  ) {}
 
-  create(createTaskDto: CreateTaskDto) {
-    const nextId = Math.max(...this.tasks.map((task) => task.id)) + 1;
-    const newTask = new Task(
-      nextId,
-      createTaskDto.title,
-      createTaskDto.description,
-    );
-    this.tasks.push(newTask);
+  create(createTaskDto: CreateTaskDto): Promise<Task> {
+    const newTask = new Task(0, createTaskDto.title, createTaskDto.description);
 
-    return newTask;
+    return this.taskRepository.save(newTask);
   }
 
-  findAll() {
-    return this.tasks;
+  findAll(): Promise<Task[]> {
+    return this.taskRepository.find({ where: { isDeleted: false } });
   }
 
-  findOne(id: number): Task | undefined {
-    const task = this.tasks.find((task) => task.id === id && !task.isDeleted);
-
-    return task;
+  findOne(id: number): Promise<Task> {
+    // Using error database
+    // return this.taskRepository.findOneOrFail({
+    //   where: { id, isDeleted: false },
+    // });
+    return this.taskRepository.findOne({
+      where: { id, isDeleted: false },
+    });
   }
 
-  update(id: number, updateTaskDto: UpdateTaskDto): Task | undefined {
-    const task = this.findOne(id);
+  async update(id: number, updateTaskDto: UpdateTaskDto): Promise<Task> {
+    const task = await this.findOne(id);
 
     if (updateTaskDto.title) {
       task.title = updateTaskDto.title;
@@ -64,14 +45,15 @@ export class TasksService {
     }
     task.updatedAt = Date.now();
 
-    return task;
+    return this.taskRepository.save(task);
   }
 
-  remove(id: number): Task | undefined {
-    const task = this.findOne(id);
+  async remove(id: number): Promise<Task> {
+    const task = await this.findOne(id);
 
     task.isDeleted = true;
+    task.updatedAt = Date.now();
 
-    return task;
+    return this.taskRepository.save(task);
   }
 }

@@ -26,13 +26,13 @@ export class TasksController {
 
   @Get()
   async findAll() {
-    // await new Promise((resolve) => setTimeout(resolve, 4000));
+    // await new Promise((resolve) => setTimeout(resolve, 6000));
     return await this.tasksService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number) {
-    const task = this.tasksService.findOne(id);
+  async findOne(@Param('id') id: number) {
+    const task = await this.tasksService.findOne(id);
     if (!task || task.isDeleted) {
       throw new NotFoundException(`Task with id ${id} not found`);
     }
@@ -41,9 +41,9 @@ export class TasksController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: number, @Body() updateTaskDto: UpdateTaskDto) {
-    const task = this.tasksService.findOne(id);
-    if (!task) {
+  async update(@Param('id') id: number, @Body() updateTaskDto: UpdateTaskDto) {
+    const task = await this.tasksService.findOne(id);
+    if (!task || task.isDeleted) {
       throw new NotFoundException(`Task with id ${id} not found`);
     }
 
@@ -51,9 +51,9 @@ export class TasksController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: number) {
-    const task = this.tasksService.findOne(id);
-    if (!task) {
+  async remove(@Param('id') id: number) {
+    const task = await this.tasksService.findOne(id);
+    if (!task || task.isDeleted) {
       throw new NotFoundException(`Task with id ${id} not found`);
     }
 

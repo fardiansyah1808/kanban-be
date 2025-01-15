@@ -7,6 +7,7 @@ import {
   NestInterceptor,
 } from '@nestjs/common';
 import { Observable, catchError, map, throwError } from 'rxjs';
+import { EntityNotFoundError } from 'typeorm';
 
 type Response<T> = {
   data: T;
@@ -82,7 +83,14 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, Response<T>> {
             response.error = errorMsg;
           }
         }
-      } else {
+      }
+      // Using error database
+      //  else if (error instanceof EntityNotFoundError) {
+      //   response.message = error.message;
+      //   response.error = error.name;
+      //   response.statusCode = 404;
+      // }
+      else {
         this.logger.error('Unexpected error:', error);
       }
 
