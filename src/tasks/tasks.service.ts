@@ -8,7 +8,7 @@ import { Repository } from 'typeorm';
 @Injectable()
 export class TasksService {
   constructor(
-    @InjectRepository(Task) private taskRepository: Repository<Task>,
+    @InjectRepository(Task) private readonly taskRepository: Repository<Task>,
   ) {}
 
   create(createTaskDto: CreateTaskDto): Promise<Task> {

@@ -5,6 +5,8 @@ import { TasksModule } from './tasks/tasks.module';
 import { CoreModule } from './core/core.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Task } from './tasks/entities/task.entity';
+import { UsersModule } from './users/users.module';
+import { User } from './users/entities/user.entity';
 
 @Module({
   imports: [
@@ -17,9 +19,10 @@ import { Task } from './tasks/entities/task.entity';
       username: 'postgres',
       password: '@Far12345',
       database: 'kanban',
-      entities: [Task],
+      entities: [Task, User],
       synchronize: true,
     }),
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
